@@ -20,7 +20,6 @@ function pandoc_filter_config_load() {
   return TRUE;
 }
 
-use Pandoc/Pandoc;
 
 /**
  * @defgroup pandoc_filter Pandoc Filter 
