@@ -8,11 +8,9 @@ function pandoc_filter_config_load() {
   if (!class_exists('Pandoc', true)) {
     if (module_exists('composer_manager') && function_exists('composer_manager_register_autoloader')) {
       composer_manager_register_autoloader();
-      use Pandoc/Pandoc;
     }
     elseif (file_exists(__DIR__ . '/vendor/autoload.php')) {
       require_once __DIR__ . '/vendor/autoload.php';
-      use Pandoc/Pandoc;
     }
     else {
       drupal_set_message('Could not find the Pandoc Class. Please use composer to grab the Pandoc-PHP library or use composer_manager to help you.', 'error');
@@ -104,7 +102,15 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
  *
  */
 function _pandoc_filter_filter_process($text, $filter, $format) {
+  
+  $loaded = pandoc_filter_config_load();
+  if(!loaded){
+    return $text;
+  }
+  
   $input_format = isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : 'mediawiki';
+  
+  use Pandoc/Pandoc;
   $pandoc = New Pandoc();
   $text = $pandoc->convert($text, $input_format, "html");
   return $text;
