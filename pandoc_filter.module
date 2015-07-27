@@ -105,7 +105,7 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
 function _pandoc_filter_filter_process($text, $filter, $format) {
   
   $loaded = pandoc_filter_config_load();
-  if(!loaded){
+  if(!$loaded){
     return $text;
   }
   
@@ -115,7 +115,6 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
   $options = array(
     "from"  => $input_format,
     "to"    => "html",
-    "toc",
   );
   $text = $pandoc->runWith($text, $options);
   return $text;
