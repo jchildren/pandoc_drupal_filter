@@ -20,6 +20,8 @@ function pandoc_filter_config_load() {
   return TRUE;
 }
 
+use Pandoc/Pandoc;
+
 /**
  * @defgroup pandoc_filter Pandoc Filter 
  * @{
@@ -110,7 +112,6 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
   
   $input_format = isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : 'mediawiki';
   
-  use Pandoc/Pandoc;
   $pandoc = New Pandoc();
   $text = $pandoc->convert($text, $input_format, "html");
   return $text;
