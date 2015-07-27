@@ -4,7 +4,6 @@ core = 7.x
 package = "Filters"
 configure = admin/config/content/formats
 
-dependencies[] = composer
 dependencies[] = composer_manager
 
 files[] = pandoc_filter.test

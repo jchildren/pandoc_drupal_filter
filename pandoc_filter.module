@@ -4,7 +4,22 @@
  * Module file for pandoc_filter.
  */
 
-require __DIR__ . '/vendor/autoload.php';
+function pandoc_filter_config_load() {
+  if (!class_exists('Pandoc', true)) {
+    if (module_exists('composer_manager') && function_exists('composer_manager_register_autoloader')) {
+      composer_manager_register_autoloader();
+    }
+    elseif (file_exists(__DIR__ . '/vendor/autoload.php')) {
+      require_once __DIR__ . '/vendor/autoload.php';
+    }
+    else {
+      drupal_set_message('Could not find the Pandoc Class. Please use composer to grab the Pandoc-PHP library or use composer_manager to help you.', 'error');
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
 use Pandoc\Pandoc;
 
 /**
