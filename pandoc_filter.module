@@ -5,7 +5,7 @@
  */
 
 function pandoc_filter_config_load() {
-  if (!class_exists('Pandoc', true)) {
+  if (!class_exists('Pandoc\Pandoc', true)) {
     if (module_exists('composer_manager') && function_exists('composer_manager_register_autoloader')) {
       composer_manager_register_autoloader();
     }
@@ -19,8 +19,6 @@ function pandoc_filter_config_load() {
   }
   return TRUE;
 }
-
-use Pandoc\Pandoc;
 
 /**
  * @defgroup pandoc_filter Pandoc Filter 
