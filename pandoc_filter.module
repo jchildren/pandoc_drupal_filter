@@ -111,8 +111,13 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
   
   $input_format = isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : 'mediawiki';
   
-  $pandoc = New Pandoc();
-  $text = $pandoc->convert($text, $input_format, "html");
+  $pandoc = New Pandoc\Pandoc();
+  $options = array(
+    "from"  => $input_format,
+    "to"    => "html",
+    "toc"   => "true",
+  );
+  $text = $pandoc->runWith($text, $options);
   return $text;
 }
 
