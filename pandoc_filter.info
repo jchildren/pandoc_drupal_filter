@@ -1,8 +1,10 @@
-
 name = "Pandoc Filter"
 description = "Text filter to convert markup formats to html using Pandoc"
 core = 7.x
 package = "Filters"
 configure = admin/config/content/formats
+
+dependencies[] = composer
+dependencies[] = composer_manager
 
 files[] = pandoc_filter.test
