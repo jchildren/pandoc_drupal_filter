@@ -1,0 +1,116 @@
+<?php
+/**
+ * @file
+ * Module file for pandoc_filter.
+ */
+
+require __DIR__ . '/vendor/autoload.php';
+use Pandoc\Pandoc;
+
+/**
+ * @defgroup pandoc_filter Pandoc Filter 
+ * @{
+ * Pandoc filter for drupal.
+*/
+
+
+/**
+ * Implements hook_menu().
+ */
+function pandoc_filter_menu() {
+  $items['admin/config/content'] = array(
+    'title' => 'Pandoc Filter',
+    'page callback' => '_pandoc_filter_information',
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_help().
+ */
+function pandoc_filter_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#pandoc_filter':
+      return _pandoc_filter_information();
+  }
+}
+
+/**
+ * Simply returns a little bit of information about the example.
+ */
+function _pandoc_filter_information() {
+  return t("<p>The Pandoc drupal filter replaces supported markup formats to html
+    to be displayed in content pages</p>",
+    array('!link' => l(t('admin/config/content/formats'), 'admin/config/content/formats'))
+  );
+}
+
+/**
+ * Implements hook_filter_info().
+ *
+ */
+function pandoc_filter_filter_info() {
+  $filters['pandoc_filter'] = array(
+    'title' => t('Pandoc Filter'),
+    'description' => t('Replaces a specified markup with html'),
+    'process callback'  => '_pandoc_filter_filter_process',
+    'default settings' => array(
+      'pandoc_filter_settings' => 'mediawiki',
+    ),
+    'settings callback' => '_pandoc_filter_filter_settings',
+    'tips callback' => '_pandoc_filter_filter_tips',
+  );
+  return $filters;
+}
+
+
+/**
+ * Settings callback for Pandoc filter.
+ *
+ */
+function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $defaults) {
+  $settings['pandoc_filter_settings'] = array(
+    '#type' => 'select',
+    '#title' => t('Markup type'),
+    '#default_value' => isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : $defaults['pandoc_filter_settings'],
+    '#description' => t('The markup type to be used in the filter'),
+    '#options' => array(
+      'mediawiki' => t('MediaWiki'),
+      'latex' => t('LaTeX'), 
+      'markdown' => t('Pandoc Markdown'),
+    ),
+  );
+  return $settings;
+}
+
+/**
+ * Pandoc filter process callback.
+ *
+ */
+function _pandoc_filter_filter_process($text, $filter, $format) {
+  $input_format = isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : 'mediawiki';
+  $pandoc = New Pandoc();
+  $text = $pandoc->convert($text, $input_format, "html");
+  return $text;
+}
+
+
+/**
+ * Filter tips callback for Pandoc filter.
+ *
+ */
+function _pandoc_filter_filter_tips($filter, $format, $long = FALSE) {
+  $replacement = isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : 'mediawiki';
+  if (!$long) {
+    // This string will be shown in the content add/edit form.
+    return t('Content in the %replacement format will be converted to html.', array('%replacement' => $replacement));
+  }
+  else {
+    return t('Content in the %replacement format will be converted to html through the pandoc program.', array('%replacement' => $replacement));
+  }
+}
+
+/**
+ * @} End of "defgroup pandoc_filter".
+ */

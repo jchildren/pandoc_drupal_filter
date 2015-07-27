@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ * Test case for Testing the filter example module.
+ *
+ * This file contains the test cases to check if module is performing as
+ * expected.
+ */
+
+/**
+ * Functional tests for the Filter Example module.
+ *
+ * @ingroup pandoc_filter
+ */
+
+class PandocFilterTestCase extends DrupalWebTestCase {
+  protected $webUser;
+  protected $filteredHtml;
+  protected $fullHtml;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Pandoc Filter functionality',
+      'description' => 'Verify that content is processed by Pandoc Filter.'
+    );
+  }
+
+  /**
+   * Enable modules and create user with specific permissions.
+   */
+  public function setUp() {
+    parent::setUp('pandoc_filter');
+
+    // Load the used input formats.
+    $this->filteredHtml = db_query_range('SELECT * FROM {filter_format} WHERE name = :name', 0, 1, array(':name' => 'Filtered HTML'))->fetchObject();
+    $this->fullHtml = db_query_range('SELECT * FROM {filter_format} WHERE name = :name', 0, 1, array(':name' => 'Full HTML'))->fetchObject();
+
+    // Create user.
+    $this->webUser = $this->drupalCreateUser(array(
+      'administer filters',
+      filter_permission_name($this->filteredHtml),
+      filter_permission_name($this->fullHtml),
+      'bypass node access',
+    ));
+  }
+
+  /**
+   * Functional test of the foo filter.
+   * 
+   * Login user, create an example node, and test blog functionality through
+   * the admin and user interfaces.
+   */
+  public function testFilterExampleBasic() {
+    // Login the admin user.
+    $this->drupalLogin($this->webUser);
+
+    // Enable both filters in format id 1 (default format).
+    $edit = array(
+      'filters[pandoc_filter][status]' => TRUE,
+    );
+    $this->drupalPost('admin/config/content/formats/' . $this->filteredHtml->format, $edit, t('Save configuration'));
+
+    // Create a content type to test the filters (with default format).
+    $content_type = $this->drupalCreateContentType();
+
+    // Create a test node.
+    $langcode = LANGUAGE_NONE;
+    $edit = array(
+      "title" => $this->randomName(),
+      "body[$langcode][0][value]" => 'Hello *pandoc*!');
+    $result = $this->drupalPost('node/add/' . $content_type->type, $edit, t('Save'));
+    $this->assertResponse(200);
+    $this->assertRaw('<p>Hello <em>pandoc</em>!</p>');
+
+  }
+}
