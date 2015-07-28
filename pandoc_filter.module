@@ -84,10 +84,11 @@ function pandoc_filter_filter_info() {
  *
  */
 function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $defaults) {
-  $settings['pandoc_filter_settings'] = array(
+  $settings['input_format_setting'] = array(
     '#type' => 'select',
     '#title' => t('Markup type'),
-    '#default_value' => isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : $defaults['pandoc_filter_settings'],
+    '#default_value' => isset($filter->settings['input_format_setting']) 
+    ? $filter->settings['input_format_setting'] : $defaults['input_format_setting'],
     '#description' => t('The markup type to be used in the filter'),
     '#options' => array(
       'mediawiki' => t('MediaWiki'),
@@ -95,6 +96,7 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
       'markdown' => t('Pandoc Markdown'),
     ),
   );
+  
   return $settings;
 }
 
@@ -109,13 +111,35 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
     return $text;
   }
   
-  $input_format = isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : 'mediawiki';
+  $input_format = isset($filter->settings['input_format_setting']) 
+  ? $filter->settings['input_format_setting'] : 'mediawiki';
   
   $pandoc = New Pandoc\Pandoc();
-  $options = array(
-    "from"  => $input_format,
-    "to"    => "html",
-  );
+  $options = array();
+    
+  $options['from']  = $input_format;
+  
+  if($use_html5 == TRUE) {
+    $options['to'] = "html5";
+  }
+  else {
+    $options['to'] = "html";
+  }
+  
+  if($use_pass_raw      == TRUE) $options['parse-raw']     = NULL;
+  if($use_smart         == TRUE) $options['smart']         = NULL;
+  if($use_normalize     == TRUE) $options['normalize']     = NULL;
+  if($use_preserve_tabs == TRUE) $options['preserve-tabs'] = NULL;
+  if($use_toc           == TRUE) $options['toc']           = NULL;
+  if($use_no_highlight  == TRUE) $options['no-highlight']  = NULL;
+  if($use_section_divs  == TRUE) $options['section-divs']  = NULL;
+  
+  $options['base-header-level'] = $header_level;
+  $options['columns']           = $column_width;
+  $options['toc-depth']         = $toc_depth;
+  $options['highlight-style']   = $hl_style;
+  $options['css']               = $css_url;
+    
   $text = $pandoc->runWith($text, $options);
   return $text;
 }
@@ -126,13 +150,15 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
  *
  */
 function _pandoc_filter_filter_tips($filter, $format, $long = FALSE) {
-  $replacement = isset($filter->settings['pandoc_filter_settings']) ? $filter->settings['pandoc_filter_settings'] : 'mediawiki';
+  $replacement = isset($filter->settings['input_format_settings']) 
+  ? $filter->settings['input_format_setting'] : 'mediawiki';
   if (!$long) {
     // This string will be shown in the content add/edit form.
     return t('Content in the %replacement format will be converted to html.', array('%replacement' => $replacement));
   }
   else {
-    return t('Content in the %replacement format will be converted to html through the pandoc program.', array('%replacement' => $replacement));
+    return t('Content in the %replacement format will be converted to html through the pandoc program.',
+    array('%replacement' => $replacement));
   }
 }
 
