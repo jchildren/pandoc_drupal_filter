@@ -8,5 +8,5 @@ The module is currently very experimental and has only been tested with the medi
 
 It is recommended that this module be enabled via [Drush](https://github.com/drush-ops/drush) with `drush en pandoc_filter`.
 
-This will prompt you for the installation of the [Composer Manager](https://www.drupal.org/project/composer_manager) module from drupal.org. This module will automatically make use of the included composer.json file to install the pandoc-php module that it depends on. However, the module will also accept a local composer installation in the module directory if you wish to install and enable it manually.
+This will prompt you for the installation of the [Composer Manager](https://www.drupal.org/project/composer_manager) module from drupal.org. This module will automatically make use of the included composer.json file to install the pandoc-php module that it depends on. However, the module will also accept a local [Composer](https://getcomposer.org/) installation in the module directory if you wish to install and enable it manually.
 
