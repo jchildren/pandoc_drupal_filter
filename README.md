@@ -1,6 +1,6 @@
 # Pandoc filter for drupal 7
 
-This module allows you to use the [pandoc-php][https://github.com/ryakad/pandoc-php] module as a filter for drupal 7 text formats. The module provides a small number of settings and will produce either html or html5 output to be used in the display of drupal fields. 
+This module allows you to use the [pandoc-php](https://github.com/ryakad/pandoc-php) module as a filter for drupal 7 text formats. The module provides a small number of settings and will produce either html or html5 output to be used in the display of drupal fields. 
 
 The module is currently very experimental and has only been tested with the mediawiki format under very controlled conditions and could potentially represent a security risk so it **should not** be used in production in its current form.
 
