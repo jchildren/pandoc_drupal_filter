@@ -73,12 +73,12 @@ function pandoc_filter_filter_info() {
     'description' => t('Replaces a specified markup with html'),
     'process callback'  => '_pandoc_filter_filter_process',
     'default settings' => array(
-      'input_format_setting' => 'mediawiki',
-      'base_header_level'    => '2',
-      'columns'              => '72',
-      'toc_depth'            => '3',
-      'highlight_style'      => 'pygments',
-      'css'                  => NULL,
+      'input_format'      => 'mediawiki',
+      'base_header_level' => '2',
+      'columns'           => '72',
+      'toc_depth'         => '3',
+      'highlight_style'   => 'pygments',
+      'css'               => NULL,
     ),
     'settings callback' => '_pandoc_filter_filter_settings',
     'tips callback' => '_pandoc_filter_filter_tips',
@@ -96,7 +96,7 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
     '#type' => 'select',
     '#title' => t('Markup type'),
     '#default_value' => isset($filter->settings['input_format'])
-    ? $filter->settings['input_format'] : $defaults['pandoc_filter'],
+    ? $filter->settings['input_format'] : $defaults['input_format'],
     '#description' => t('The markup type to be used in the filter'),
     '#options' => array(
       'native'            => t('Native Haskell'),
@@ -119,16 +119,16 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
   $settings['pandoc_extras'] = array(
     '#title' => t('Pandoc additional options'),
     '#type' => 'checkboxes',
-    '#description' => t('See http://pandoc.org/README.html for more details'),
+    '#description' => t('See <a href="http://pandoc.org/README.html">the Pandoc readme</a> for more details'),
     '#options' => array(
-      'use_html5'         = 'Use html5 tags in output';
-      'use_pass_raw'      = 'Parse untranslatable HTML codes and LaTeX enviroments as raw';
-      'use_smart'         = 'Automatically produce typographically correct output';
-      'use_preserve_tabs' = 'Preserve tabs in formatting for code blocks';
-      'use_normalize'     = 'Normalize document after processing';
-      'use_toc'           = 'Include a table of contents at the top of the page';
-      'use_no_highlight'  = 'Disables code highlighting';
-      'use_section_divs'  = 'Wrap sections in <div> tags (or <section> with html5 enabled)';
+      'use_html5'         => t('Use html5 tags in output'),
+      'use_pass_raw'      => t('Parse untranslatable HTML codes and LaTeX enviroments as raw'),
+      'use_smart'         => t('Automatically produce typographically correct output'),
+      'use_preserve_tabs' => t('Preserve tabs in formatting for code blocks'),
+      'use_normalize'     => t('Normalize document after processing'),
+      'use_toc'           => t('Include a table of contents at the top of the page'),
+      'use_no_highlight'  => t('Disables code highlighting'),
+      'use_section_divs'  => t('Wrap sections in div tags (or section with html5 enabled)'),
     ),
     '#default_value' => array(
       'use_smart',
@@ -140,9 +140,9 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
   $settings['base_header_level'] = array(
     '#type' => 'select',
     '#title' => t('Base header level'),
-    '#default_value' => isset($filter->settings['toc_depth'])
+    '#default_value' => isset($filter->settings['base_header_level'])
+    ? $filter->settings['base_header_level'] : $defaults['base_header_level'],
     '#description' => t('The header tag to use for the top level titles'),
-    ? $filter->settings['toc_depth'] : $defaults['pandoc_filter'],
     '#options' => array(
       '1' => t('1'),
       '2' => t('2'),
@@ -151,21 +151,24 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
       '5' => t('5'),
       '6' => t('6'),
     ),
+  );
 
   $settings['columns'] = array(
-    '#type' => 'textbox',
+    '#type' => 'textfield',
     '#title' => t('Column width'),
     '#default_value' => isset($filter->settings['columns'])
-    ? $filter->settings['columns'] : $defaults['pandoc_filter'],
+    ? $filter->settings['columns'] : $defaults['columns'],
     '#description' => t('A positive integer that determines the number of characters per line on output'),
     '#element_validate' => array('element_validate_integer_positive'),
+    '#width' => '30%',
+    '#maxlength' => 3,
   );
 
   $settings['toc_depth'] = array(
     '#type' => 'select',
     '#title' => t('Table of contents depth'),
     '#default_value' => isset($filter->settings['toc_depth'])
-    ? $filter->settings['toc_depth'] : $defaults['pandoc_filter'],
+    ? $filter->settings['toc_depth'] : $defaults['toc_depth'],
     '#description' => t('The number of header levels below the base to include in the table of contents'),
     '#options' => array(
       '1' => t('1'),
@@ -181,7 +184,7 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
     '#type' => 'select',
     '#title' => t('Code highlight style'),
     '#default_value' => isset($filter->settings['highlight_style'])
-    ? $filter->settings['highlight_style'] : $defaults['pandoc_filter'],
+    ? $filter->settings['highlight_style'] : $defaults['highlight_style'],
     '#description' => t('The highlight style to be used in fenced code blocks'),
     '#options' => array(
       'pygments'   => t('pygments'),
