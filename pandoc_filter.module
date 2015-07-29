@@ -6,14 +6,17 @@
 
 function pandoc_filter_config_load() {
   if (!class_exists('Pandoc', true)) {
-    if (module_exists('composer_manager') && function_exists('composer_manager_register_autoloader')) {
+    if (module_exists('composer_manager')
+    && function_exists('composer_manager_register_autoloader')) {
       composer_manager_register_autoloader();
     }
     elseif (file_exists(__DIR__ . '/vendor/autoload.php')) {
       require_once __DIR__ . '/vendor/autoload.php';
     }
     else {
-      drupal_set_message('Could not find the Pandoc Class. Please use composer to grab the Pandoc-PHP library or use composer_manager to help you.', 'error');
+      drupal_set_message('Could not find the Pandoc Class.
+      Please use composer to grab the Pandoc-PHP library
+      or use composer_manager to help you.', 'error');
       return FALSE;
     }
   }
@@ -22,7 +25,7 @@ function pandoc_filter_config_load() {
 
 
 /**
- * @defgroup pandoc_filter Pandoc Filter 
+ * @defgroup pandoc_filter Pandoc Filter
  * @{
  * Pandoc filter for drupal.
 */
@@ -70,7 +73,12 @@ function pandoc_filter_filter_info() {
     'description' => t('Replaces a specified markup with html'),
     'process callback'  => '_pandoc_filter_filter_process',
     'default settings' => array(
-      'pandoc_filter_settings' => 'mediawiki',
+      'input_format_setting' => 'mediawiki',
+      'base_header_level'    => '2',
+      'columns'              => '72',
+      'toc_depth'            => '3',
+      'highlight_style'      => 'pygments',
+      'css'                  => NULL,
     ),
     'settings callback' => '_pandoc_filter_filter_settings',
     'tips callback' => '_pandoc_filter_filter_tips',
@@ -84,20 +92,118 @@ function pandoc_filter_filter_info() {
  *
  */
 function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $defaults) {
-  $settings['input_format_setting'] = array(
+  $settings['input_format'] = array(
     '#type' => 'select',
     '#title' => t('Markup type'),
-    '#default_value' => isset($filter->settings['input_format_setting']) 
-    ? $filter->settings['input_format_setting'] : $defaults['input_format_setting'],
+    '#default_value' => isset($filter->settings['input_format'])
+    ? $filter->settings['input_format'] : $defaults['pandoc_filter'],
     '#description' => t('The markup type to be used in the filter'),
     '#options' => array(
-      'mediawiki' => t('MediaWiki'),
-      'latex' => t('LaTeX'), 
-      'markdown' => t('Pandoc Markdown'),
+      'native'            => t('Native Haskell'),
+      'json'              => t('JSON native AST'),
+      'markdown'          => t('Pandoc Markdown'),
+      'markdown_strict'   => t('Strict Pandoc Markdown'),
+      'markdown_phpextra' => t('Php Markdown'),
+      'markdown_github'   => t('Github extended Markdown'),
+      'markdown_mmd'      => t('MultiMarkdown'),
+      'rst'               => t('reStructuredText'),
+      'mediawiki'         => t('MediaWiki'),
+      'docbook'           => t('DocBook'),
+      'textile'           => t('Textile'),
+      'latex'             => t('LaTeX'),
     ),
   );
-  
+
+
+
+  $settings['pandoc_extras'] = array(
+    '#title' => t('Pandoc additional options'),
+    '#type' => 'checkboxes',
+    '#description' => t('See http://pandoc.org/README.html for more details'),
+    '#options' => array(
+      'use_html5'         = 'Use html5 tags in output';
+      'use_pass_raw'      = 'Parse untranslatable HTML codes and LaTeX enviroments as raw';
+      'use_smart'         = 'Automatically produce typographically correct output';
+      'use_preserve_tabs' = 'Preserve tabs in formatting for code blocks';
+      'use_normalize'     = 'Normalize document after processing';
+      'use_toc'           = 'Include a table of contents at the top of the page';
+      'use_no_highlight'  = 'Disables code highlighting';
+      'use_section_divs'  = 'Wrap sections in <div> tags (or <section> with html5 enabled)';
+    ),
+    '#default_value' => array(
+      'use_smart',
+      'use_normalize',
+    ),
+    '#value_callback' => 'settings_pandoc_extras_options_value'
+  );
+
+  $settings['base_header_level'] = array(
+    '#type' => 'select',
+    '#title' => t('Base header level'),
+    '#default_value' => isset($filter->settings['toc_depth'])
+    '#description' => t('The header tag to use for the top level titles'),
+    ? $filter->settings['toc_depth'] : $defaults['pandoc_filter'],
+    '#options' => array(
+      '1' => t('1'),
+      '2' => t('2'),
+      '3' => t('3'),
+      '4' => t('4'),
+      '5' => t('5'),
+      '6' => t('6'),
+    ),
+
+  $settings['columns'] = array(
+    '#type' => 'textbox',
+    '#title' => t('Column width'),
+    '#default_value' => isset($filter->settings['columns'])
+    ? $filter->settings['columns'] : $defaults['pandoc_filter'],
+    '#description' => t('A positive integer that determines the number of characters per line on output'),
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
+
+  $settings['toc_depth'] = array(
+    '#type' => 'select',
+    '#title' => t('Table of contents depth'),
+    '#default_value' => isset($filter->settings['toc_depth'])
+    ? $filter->settings['toc_depth'] : $defaults['pandoc_filter'],
+    '#description' => t('The number of header levels below the base to include in the table of contents'),
+    '#options' => array(
+      '1' => t('1'),
+      '2' => t('2'),
+      '3' => t('3'),
+      '4' => t('4'),
+      '5' => t('5'),
+      '6' => t('6'),
+    ),
+  );
+
+  $settings['highlight_style'] = array(
+    '#type' => 'select',
+    '#title' => t('Code highlight style'),
+    '#default_value' => isset($filter->settings['highlight_style'])
+    ? $filter->settings['highlight_style'] : $defaults['pandoc_filter'],
+    '#description' => t('The highlight style to be used in fenced code blocks'),
+    '#options' => array(
+      'pygments'   => t('pygments'),
+      'kate'       => t('kate'),
+      'monochrome' => t('monochrome'),
+      'espresso'   => t('expresso'),
+      'zenburn'    => t('zenburn'),
+      'haddock'    => t('haddock'),
+      'tango'      => t('tango'),
+    ),
+  );
+
   return $settings;
+}
+
+function settings_pandoc_extras_value($element, $input = FALSE) {
+  if ($input === FALSE) {
+    return isset($element['#default_value']) ? $element['#default_value'] : 0;
+  }
+  else {
+    return isset($input) ? $element['#return_value'] : 0;
+  }
 }
 
 /**
@@ -105,41 +211,51 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
  *
  */
 function _pandoc_filter_filter_process($text, $filter, $format) {
-  
+
   $loaded = pandoc_filter_config_load();
   if(!$loaded){
     return $text;
   }
-  
-  $input_format = isset($filter->settings['input_format_setting']) 
-  ? $filter->settings['input_format_setting'] : 'mediawiki';
-  
+
+  // Creates a new Pandoc object from pandoc-php
   $pandoc = New Pandoc\Pandoc();
+
+  // This array will store key value pairs that will be passed to the
+  // runWith pandoc-php function and match options for Pandoc
   $options = array();
-    
+
+  $input_format = isset($filter->settings['input_format_setting'])
+  ? $filter->settings['input_format_setting'] : 'mediawiki';
+
   $options['from']  = $input_format;
-  
-  if($use_html5 == TRUE) {
-    $options['to'] = "html5";
+
+  if(settings_pandoc_binary_options_value('use_html5') == TRUE) {
+    $options['to'] = 'html5';
   }
   else {
-    $options['to'] = "html";
+    $options['to'] = 'html';
   }
-  
-  if($use_pass_raw      == TRUE) $options['parse-raw']     = NULL;
-  if($use_smart         == TRUE) $options['smart']         = NULL;
-  if($use_normalize     == TRUE) $options['normalize']     = NULL;
-  if($use_preserve_tabs == TRUE) $options['preserve-tabs'] = NULL;
-  if($use_toc           == TRUE) $options['toc']           = NULL;
-  if($use_no_highlight  == TRUE) $options['no-highlight']  = NULL;
-  if($use_section_divs  == TRUE) $options['section-divs']  = NULL;
-  
+
+  if(settings_pandoc_binary_options_value('parse_raw')         == TRUE)
+    $options['parse-raw']     = NULL;
+  if(settings_pandoc_binary_options_value('use_smart')         == TRUE)
+    $options['smart']         = NULL;
+  if(settings_pandoc_binary_options_value('use_normalize')     == TRUE)
+    $options['normalize']     = NULL;
+  if(settings_pandoc_binary_options_value('use_preserve_tabs') == TRUE)
+    $options['preserve-tabs'] = NULL;
+  if(settings_pandoc_binary_options_value('use_toc')           == TRUE)
+    $options['toc']           = NULL;
+  if(settings_pandoc_binary_options_value('use_no_highlight')  == TRUE)
+    $options['no-highlight']  = NULL;
+  if(settings_pandoc_binary_options_value('use_section_divs')  == TRUE)
+    $options['section-divs']  = NULL;
+
   $options['base-header-level'] = $header_level;
   $options['columns']           = $column_width;
   $options['toc-depth']         = $toc_depth;
   $options['highlight-style']   = $hl_style;
-  $options['css']               = $css_url;
-    
+
   $text = $pandoc->runWith($text, $options);
   return $text;
 }
@@ -150,7 +266,7 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
  *
  */
 function _pandoc_filter_filter_tips($filter, $format, $long = FALSE) {
-  $replacement = isset($filter->settings['input_format_settings']) 
+  $replacement = isset($filter->settings['input_format_settings'])
   ? $filter->settings['input_format_setting'] : 'mediawiki';
   if (!$long) {
     // This string will be shown in the content add/edit form.
