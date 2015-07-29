@@ -114,27 +114,60 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
     ),
   );
 
+  $settings['use_html5'] = array(
+    '#title' => t('Use html5 tags in output'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($filter->settings['use_html5'])
+    ? $filter->settings['use_html5'] : $defaults['use_html5'],
+  );
 
+  $settings['use_pass_raw'] = array(
+    '#title' => t('Parse untranslatable HTML codes and LaTeX enviroments as raw'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($filter->settings['use_pass_raw'])
+    ? $filter->settings['use_pass_raw'] : $defaults['use_pass_raw'],
+  );
 
-  $settings['pandoc_extras'] = array(
-    '#title' => t('Pandoc additional options'),
-    '#type' => 'checkboxes',
-    '#description' => t('See <a href="http://pandoc.org/README.html">the Pandoc readme</a> for more details'),
-    '#options' => array(
-      'use_html5'         => t('Use html5 tags in output'),
-      'use_pass_raw'      => t('Parse untranslatable HTML codes and LaTeX enviroments as raw'),
-      'use_smart'         => t('Automatically produce typographically correct output'),
-      'use_preserve_tabs' => t('Preserve tabs in formatting for code blocks'),
-      'use_normalize'     => t('Normalize document after processing'),
-      'use_toc'           => t('Include a table of contents at the top of the page'),
-      'use_no_highlight'  => t('Disables code highlighting'),
-      'use_section_divs'  => t('Wrap sections in div tags (or section with html5 enabled)'),
-    ),
-    '#default_value' => array(
-      'use_smart',
-      'use_normalize',
-    ),
-    '#value_callback' => 'settings_pandoc_extras_options_value'
+  $settings['use_smart'] = array(
+    '#title' => t('Automatically produce typographically correct output'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($filter->settings['use_smart'])
+    ? $filter->settings['use_smart'] : $defaults['use_smart'],
+  );
+
+  $settings['use_preserve_tabs'] = array(
+    '#title' => t('Preserve tabs in formatting for code blocks'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($filter->settings['use_preserve_tabs'])
+    ? $filter->settings['use_preserve_tabs'] : $defaults['use_preserve_tabs'],
+  );
+
+  $settings['use_normalize'] = array(
+    '#title' => t('Normalize document after processing'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($filter->settings['use_normalize'])
+    ? $filter->settings['use_normalize'] : $defaults['use_normalize'],
+  );
+
+  $settings['use_toc'] = array(
+    '#title' => t('Include a table of contents at the top of the page'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($filter->settings['use_toc'])
+    ? $filter->settings['use_toc'] : $defaults['use_toc'],
+  );
+
+  $settings['use_no_highlight'] = array(
+    '#title' => t('Disables code highlighting'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($filter->settings['use_no_highlight'])
+    ? $filter->settings['use_no_highlight'] : $defaults['use_no_highlight'],
+  );
+
+  $settings['use_section_divs'] = array(
+    '#title' => t('Wrap sections in div tags (or section with html5 enabled)'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($filter->settings['use_section_divs'])
+    ? $filter->settings['use_section_divs'] : $defaults['use_section_divs'],
   );
 
   $settings['base_header_level'] = array(
@@ -160,7 +193,7 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
     ? $filter->settings['columns'] : $defaults['columns'],
     '#description' => t('A positive integer that determines the number of characters per line on output'),
     '#element_validate' => array('element_validate_integer_positive'),
-    '#width' => '30%',
+    '#width' => '20px',
     '#maxlength' => 3,
   );
 
@@ -197,17 +230,20 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
     ),
   );
 
+  $form['description'] = array(
+    '#type' => 'item',
+    '#title' => t('See the <a href="http://pandoc.org/README.html">Pandoc readme</a> for more details'),
+  );
+
   return $settings;
 }
 
-function settings_pandoc_extras_value($element, $input = FALSE) {
-  if ($input === FALSE) {
-    return isset($element['#default_value']) ? $element['#default_value'] : 0;
-  }
-  else {
-    return isset($input) ? $element['#return_value'] : 0;
-  }
+
+function pandoc_filter_check_settings($element, $filter, $default) {
+  $value = isset($filter->settings[$element]) ? $filter->settings[$element] : $default;
+  return $value;
 }
+
 
 /**
  * Pandoc filter process callback.
@@ -227,53 +263,34 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
   // runWith pandoc-php function and match options for Pandoc
   $options = array();
 
-  $input_format = isset($filter->settings['input_format_setting'])
-  ? $filter->settings['input_format_setting'] : 'mediawiki';
+  $options['from']  = pandoc_filter_check_settings('input_format', $filter, 'mediawiki');
 
-  $options['from']  = $input_format;
-
-  if(settings_pandoc_binary_options_value('use_html5') == TRUE) {
+  if(pandoc_filter_check_settings('use_html5', $filter, FALSE) == TRUE) {
     $options['to'] = 'html5';
   }
   else {
     $options['to'] = 'html';
   }
 
-  if(settings_pandoc_binary_options_value('parse_raw')         == TRUE)
+  if(pandoc_filter_check_settings('use_parse_raw', $filter, FALSE) == TRUE)
     $options['parse-raw']     = NULL;
-  if(settings_pandoc_binary_options_value('use_smart')         == TRUE)
+  if(pandoc_filter_check_settings('use_smart', $filter, FALSE) == TRUE)
     $options['smart']         = NULL;
-  if(settings_pandoc_binary_options_value('use_normalize')     == TRUE)
+  if(pandoc_filter_check_settings('use_normalize', $filter, FALSE) == TRUE)
     $options['normalize']     = NULL;
-  if(settings_pandoc_binary_options_value('use_preserve_tabs') == TRUE)
+  if(pandoc_filter_check_settings('use_preserve_tabs', $filter, FALSE) == TRUE)
     $options['preserve-tabs'] = NULL;
-  if(settings_pandoc_binary_options_value('use_toc')           == TRUE)
+  if(pandoc_filter_check_settings('use_toc', $filter, FALSE) == TRUE)
     $options['toc']           = NULL;
-  if(settings_pandoc_binary_options_value('use_no_highlight')  == TRUE)
+  if(pandoc_filter_check_settings('use_no_highlight', $filter, FALSE) == TRUE)
     $options['no-highlight']  = NULL;
-  if(settings_pandoc_binary_options_value('use_section_divs')  == TRUE)
+  if(pandoc_filter_check_settings('use_section_divs', $filter, FALSE) == TRUE)
     $options['section-divs']  = NULL;
 
-  $header_level = isset($filter->settings['base_header_level'])
-  ? $filter->settings['base_header_level'] : '2';
-
-  $options['base-header-level'] = $header_level;
-
-  $column_width = isset($filter->settings['columns'])
-  ? $filter->settings['columns'] : '72';
-
-  $options['columns']           = $column_width;
-
-  $toc_depth = isset($filter->settings['toc_depth'])
-  ? $filter->settings['toc_depth'] : '3';
-
-  $options['toc-depth']         = $toc_depth;
-
-  $highlight_style = isset($filter->settings['highlight_style'])
-  ? $filter->settings['highlight_style'] : 'pygments';
-
-  $options['highlight-style']   = $highlight_style;
-
+  $options['base-header-level'] = pandoc_filter_check_settings('base_header_level', $filter, 2);
+  $options['columns'] = pandoc_filter_check_settings('columns', $filter, 72);
+  $options['toc-depth']         = pandoc_filter_check_settings('toc_depth', $filter, 3);
+  $options['highlight-style']   = pandoc_filter_check_settings('highlight-style', $filter, 'pygments');
 
   $text = $pandoc->runWith($text, $options);
 
@@ -286,8 +303,8 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
  *
  */
 function _pandoc_filter_filter_tips($filter, $format, $long = FALSE) {
-  $replacement = isset($filter->settings['input_format_settings'])
-  ? $filter->settings['input_format_setting'] : 'mediawiki';
+  $replacement = isset($filter->settings['input_format'])
+  ? $filter->settings['input_format'] : 'mediawiki';
   if (!$long) {
     // This string will be shown in the content add/edit form.
     return t('Content in the %replacement format will be converted to html.', array('%replacement' => $replacement));
