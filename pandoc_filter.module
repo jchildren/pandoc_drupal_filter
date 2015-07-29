@@ -251,12 +251,29 @@ function _pandoc_filter_filter_process($text, $filter, $format) {
   if(settings_pandoc_binary_options_value('use_section_divs')  == TRUE)
     $options['section-divs']  = NULL;
 
+  $header_level = isset($filter->settings['base_header_level'])
+  ? $filter->settings['base_header_level'] : '2';
+
   $options['base-header-level'] = $header_level;
+
+  $column_width = isset($filter->settings['columns'])
+  ? $filter->settings['columns'] : '72';
+
   $options['columns']           = $column_width;
+
+  $toc_depth = isset($filter->settings['toc_depth'])
+  ? $filter->settings['toc_depth'] : '3';
+
   $options['toc-depth']         = $toc_depth;
-  $options['highlight-style']   = $hl_style;
+
+  $highlight_style = isset($filter->settings['highlight_style'])
+  ? $filter->settings['highlight_style'] : 'pygments';
+
+  $options['highlight-style']   = $highlight_style;
+
 
   $text = $pandoc->runWith($text, $options);
+
   return $text;
 }
 
