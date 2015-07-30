@@ -79,7 +79,16 @@ function pandoc_filter_filter_info() {
       'toc_depth'         => '3',
       'highlight_style'   => 'pygments',
       'css'               => NULL,
+      'use_html5'         => FALSE,
+      'use_parse_raw'     => FALSE,
+      'use_smart'         => FALSE,
+      'use_normalize'     => FALSE,
+      'use_preserve_tabs' => FALSE,
+      'use_toc'           => FALSE,
+      'use_no_highlight'  => FALSE,
+      'use_section_divs'  => FALSE,
     ),
+    
     'settings callback' => '_pandoc_filter_filter_settings',
     'tips callback' => '_pandoc_filter_filter_tips',
   );
