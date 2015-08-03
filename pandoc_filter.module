@@ -88,7 +88,7 @@ function pandoc_filter_filter_info() {
       'use_no_highlight'  => FALSE,
       'use_section_divs'  => FALSE,
     ),
-    
+
     'settings callback' => '_pandoc_filter_filter_settings',
     'tips callback' => '_pandoc_filter_filter_tips',
   );
@@ -130,11 +130,11 @@ function _pandoc_filter_filter_settings($form, $form_state, $filter, $format, $d
     ? $filter->settings['use_html5'] : $defaults['use_html5'],
   );
 
-  $settings['use_pass_raw'] = array(
+  $settings['use_parse_raw'] = array(
     '#title' => t('Parse untranslatable HTML codes and LaTeX enviroments as raw'),
     '#type' => 'checkbox',
-    '#default_value' => isset($filter->settings['use_pass_raw'])
-    ? $filter->settings['use_pass_raw'] : $defaults['use_pass_raw'],
+    '#default_value' => isset($filter->settings['use_parse_raw'])
+    ? $filter->settings['use_parse_raw'] : $defaults['use_parse_raws_raw'],
   );
 
   $settings['use_smart'] = array(
